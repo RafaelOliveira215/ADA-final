@@ -1,14 +1,16 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ChurrascoComponent } from '../churrasco/churrasco.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, ChurrascoComponent],
   template: `
     <div class="home-container">
-      <h1>Welcome to Home Page</h1>
-      <p>This is your home page content.</p>
+      <section class="churrasco-section">
+        <app-churrasco></app-churrasco>
+      </section>
     </div>
   `,
   styles: [`
