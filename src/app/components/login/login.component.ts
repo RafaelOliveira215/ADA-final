@@ -97,7 +97,6 @@ export class LoginComponent {
 
   onSubmit() {
     if (this.form.valid) {
-      // No authentication, just redirect to home
       this.router.navigate(['/home']);
     }
   }

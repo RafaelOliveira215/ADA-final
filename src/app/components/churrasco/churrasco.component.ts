@@ -98,7 +98,6 @@ export class ChurrascoComponent {
 
     form: FormGroup;
 
-    // calculation results
     meatCost: number = 0;
     drinkCost: number = 0;
     totalCost: number = 0;
@@ -128,7 +127,6 @@ export class ChurrascoComponent {
 
         console.log('Adultos:', v.adultos, 'Crianças:', v.criancas, 'Total:', totalPeople);
 
-        // Validate: at least 1 person required
         if (totalPeople === 0) {
             this.validationError = 'É necessário ter pelo menos 1 criança ou 1 adulto';
             this.submitted = false;
@@ -157,7 +155,6 @@ export class ChurrascoComponent {
             this.drinkCost = this.drinksOptions
                 .filter(d => this.selectedDrinks.includes(d.value))
                 .reduce((sum, d) => {
-                    // children do not consume beer (cerveja)
                     const peopleForThisDrink = (d.value === 'cerveja') ? adults : totalPeople;
                     return sum + (d.pricePerUnit! * peopleForThisDrink);
                 }, 0);
@@ -176,7 +173,6 @@ export class ChurrascoComponent {
 
     onlyNumbers(event: KeyboardEvent) {
         const key = event.key;
-        // Allow numbers, backspace, delete, tab, enter, arrow keys
         if (!/^[0-9]$/.test(key) && 
             !['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(key)) {
             event.preventDefault();
