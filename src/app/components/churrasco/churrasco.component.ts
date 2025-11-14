@@ -14,12 +14,12 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray } from '@angular
 
         <div class="field">
           <label for="adultos">Número de adultos</label>
-          <input id="adultos" type="number" min="0" formControlName="adultos" />
+          <input id="adultos" type="text" min="0" inputmode="numeric" formControlName="adultos" (keydown)="onlyNumbers($event)" />
         </div>
 
         <div class="field">
           <label for="criancas">Número de crianças</label>
-          <input id="criancas" type="number" min="0" formControlName="criancas" />
+          <input id="criancas" type="text" min="0" inputmode="numeric" formControlName="criancas" (keydown)="onlyNumbers($event)" />
         </div>
 
         <fieldset class="checkbox-group" formArrayName="meats">
@@ -45,11 +45,15 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray } from '@angular
         <button type="submit">Calcular</button>
       </form>
 
-      <div *ngIf="submitted" class="result">
+      <div *ngIf="validationError && validationError.length > 0" class="error">
+        {{ validationError }}
+      </div>
+
+      <div *ngIf="submitted && !validationError" class="result">
         <p><strong>Total de pessoas:</strong> {{ totalPessoas() }}</p>
-        <p><strong>Valor Bebidas:</strong> {{ drinkCost | number:'1.2-2' }}</p>
-        <p><strong>Valor Carnes:</strong> {{ meatCost | number:'1.2-2' }}</p>
-        <p><strong>Valor Total:</strong> {{ totalCost | number:'1.2-2' }}</p>
+        <p><strong>Valor Bebidas:</strong> R$ {{ drinkCost | number:'1.2-2' }}</p>
+        <p><strong>Valor Carnes:</strong>R$ {{ meatCost | number:'1.2-2' }}</p>
+        <p><strong>Valor Total:</strong>R$ {{ totalCost | number:'1.2-2' }}</p>
       </div>
     </div>
   `,
@@ -65,6 +69,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray } from '@angular
       .checkbox-item { margin: 6px 0; }
       button { padding: 8px 12px; cursor: pointer; }
       .result { margin-top: 12px; background: #f9f9f9; padding: 8px; border-radius: 4px; }
+      .error { margin-top: 12px; background: #f8d7da; color: #721c24; padding: 8px; border-radius: 4px; border: 1px solid #f5c6cb; }
     `
     ]
 })
@@ -72,6 +77,7 @@ export class ChurrascoComponent {
     criancas: number = 0;
     adultos: number = 0;
     submitted = false;
+    validationError = '';
 
     meatsOptions = [
         { label: 'Picanha', value: 'picanha', pricePerKg: 70 },
@@ -116,12 +122,23 @@ export class ChurrascoComponent {
 
     onSubmit() {
         const v = this.form.value;
-        this.selectedMeats = this.meatsOptions.filter((_, i) => v.meats[i]).map(o => o.value);
-        this.selectedDrinks = this.drinksOptions.filter((_, i) => v.drinks[i]).map(o => o.value);
-
         const adults = Number(v.adultos || 0);
         const children = Number(v.criancas || 0);
         const totalPeople = adults + children;
+
+        console.log('Adultos:', v.adultos, 'Crianças:', v.criancas, 'Total:', totalPeople);
+
+        // Validate: at least 1 person required
+        if (totalPeople === 0) {
+            this.validationError = 'É necessário ter pelo menos 1 criança ou 1 adulto';
+            this.submitted = false;
+            console.log('Erro de validação:', this.validationError);
+            return;
+        }
+
+        this.validationError = '';
+        this.selectedMeats = this.meatsOptions.filter((_, i) => v.meats[i]).map(o => o.value);
+        this.selectedDrinks = this.drinksOptions.filter((_, i) => v.drinks[i]).map(o => o.value);
 
         if (this.selectedMeats.length > 0) {
             this.meatCost = this.meatsOptions
@@ -139,7 +156,11 @@ export class ChurrascoComponent {
         if (this.selectedDrinks.length > 0) {
             this.drinkCost = this.drinksOptions
                 .filter(d => this.selectedDrinks.includes(d.value))
-                .reduce((sum, d) => sum + (d.pricePerUnit! * totalPeople), 0);
+                .reduce((sum, d) => {
+                    // children do not consume beer (cerveja)
+                    const peopleForThisDrink = (d.value === 'cerveja') ? adults : totalPeople;
+                    return sum + (d.pricePerUnit! * peopleForThisDrink);
+                }, 0);
         } else {
             this.drinkCost = 0;
         }
@@ -151,5 +172,14 @@ export class ChurrascoComponent {
     totalPessoas() {
         const v = this.form.value;
         return Number(v.criancas || 0) + Number(v.adultos || 0);
+    }
+
+    onlyNumbers(event: KeyboardEvent) {
+        const key = event.key;
+        // Allow numbers, backspace, delete, tab, enter, arrow keys
+        if (!/^[0-9]$/.test(key) && 
+            !['Backspace', 'Delete', 'Tab', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(key)) {
+            event.preventDefault();
+        }
     }
 }
