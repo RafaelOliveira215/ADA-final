@@ -2,86 +2,89 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatCardModule,
+    MatIconModule
+  ],
   template: `
     <div class="login-container">
-      <form [formGroup]="form" (ngSubmit)="onSubmit()">
-        <div class="form-group">
-          <label for="username">Username:</label>
-          <input 
-            type="text" 
-            id="username" 
-            formControlName="username" 
-            class="form-control"
-            placeholder="Digite seu usuário">
-          <div *ngIf="form.get('username')?.invalid && form.get('username')?.touched" class="error-message">
-            Usuário é obrigatório
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="password">Password:</label>
-          <input 
-            type="password" 
-            id="password" 
-            formControlName="password" 
-            class="form-control"
-            placeholder="Digite sua senha">
-          <div *ngIf="form.get('password')?.invalid && form.get('password')?.touched" class="error-message">
-            Senha é obrigatória
-          </div>
-        </div>
-        <button type="submit" class="btn-submit" [disabled]="form.invalid">Login</button>
-      </form>
+      <mat-card class="login-card">
+        <mat-card-header>
+          <mat-card-title>Login - ADA-Final</mat-card-title>
+        </mat-card-header>
+        <mat-card-content>
+          <form [formGroup]="form" (ngSubmit)="onSubmit()">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Usuário</mat-label>
+              <input 
+                matInput
+                formControlName="username" 
+                placeholder="Digite seu usuário">
+              <mat-error *ngIf="form.get('username')?.hasError('required')">
+                Usuário é obrigatório
+              </mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Senha</mat-label>
+              <input 
+                matInput
+                type="password"
+                formControlName="password" 
+                placeholder="Digite sua senha">
+              <mat-error *ngIf="form.get('password')?.hasError('required')">
+                Senha é obrigatória
+              </mat-error>
+            </mat-form-field>
+
+            <div class="button-container">
+              <button 
+                mat-raised-button 
+                color="primary" 
+                type="submit" 
+                [disabled]="form.invalid"
+                class="full-width">
+                Login
+              </button>
+            </div>
+          </form>
+        </mat-card-content>
+      </mat-card>
     </div>
   `,
   styles: [`
     .login-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .login-card {
+      width: 100%;
       max-width: 400px;
-      margin: 50px auto;
       padding: 20px;
     }
-    .form-group {
-      margin-bottom: 15px;
-    }
-    .form-group label {
-      display: block;
-      margin-bottom: 5px;
-    }
-    .form-control {
+    .full-width {
       width: 100%;
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      box-sizing: border-box;
+      margin-bottom: 16px;
     }
-    .form-control:focus {
-      outline: none;
-      border-color: #007bff;
-    }
-    .error-message {
-      color: #dc3545;
-      font-size: 12px;
-      margin-top: 4px;
-    }
-    .btn-submit {
-      width: 100%;
-      padding: 10px;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    .btn-submit:hover:not(:disabled) {
-      background-color: #0056b3;
-    }
-    .btn-submit:disabled {
-      background-color: #ccc;
-      cursor: not-allowed;
+    .button-container {
+      margin-top: 24px;
     }
   `]
 })
