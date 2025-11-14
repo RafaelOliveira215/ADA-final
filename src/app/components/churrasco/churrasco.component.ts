@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray } from '@angular/forms';
+import { ChurrascoService, MeatOption, DrinkOption } from '../../services/churrasco.service';
 
 @Component({
     selector: 'app-churrasco',
@@ -9,7 +10,16 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray } from '@angular
     template: `
     <div class="churrasco-card">
       <h2>Formulário de Churrasco</h2>
-      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+      <div *ngIf="isLoading" class="loading">
+        Carregando dados...
+      </div>
+
+      <div *ngIf="loadingError && loadingError.length > 0" class="warning">
+        {{ loadingError }}
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" *ngIf="!isLoading">
 
 
         <div class="field">
@@ -70,28 +80,21 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, FormArray } from '@angular
       button { padding: 8px 12px; cursor: pointer; }
       .result { margin-top: 12px; background: #f9f9f9; padding: 8px; border-radius: 4px; }
       .error { margin-top: 12px; background: #f8d7da; color: #721c24; padding: 8px; border-radius: 4px; border: 1px solid #f5c6cb; }
+      .loading { margin-top: 12px; background: #e7f3ff; color: #004085; padding: 8px; border-radius: 4px; border: 1px solid #b8daff; text-align: center; }
+      .warning { margin-top: 12px; background: #fff3cd; color: #856404; padding: 8px; border-radius: 4px; border: 1px solid #ffeeba; }
     `
     ]
 })
-export class ChurrascoComponent {
+export class ChurrascoComponent implements OnInit {
     criancas: number = 0;
     adultos: number = 0;
     submitted = false;
     validationError = '';
+    isLoading = true;
+    loadingError = '';
 
-    meatsOptions = [
-        { label: 'Picanha', value: 'picanha', pricePerKg: 70 },
-        { label: 'Alcatra', value: 'alcatra', pricePerKg: 45 },
-        { label: 'Linguiça', value: 'linguica', pricePerKg: 25 },
-        { label: 'Frango', value: 'frango', pricePerKg: 18 }
-    ];
-
-    drinksOptions = [
-        { label: 'Cerveja', value: 'cerveja', pricePerUnit: 6 },
-        { label: 'Refrigerante', value: 'refrigerante', pricePerUnit: 7 },
-        { label: 'Água', value: 'agua', pricePerUnit: 2 },
-        { label: 'Suco', value: 'suco', pricePerUnit: 5 }
-    ];
+    meatsOptions: MeatOption[] = [];
+    drinksOptions: DrinkOption[] = [];
 
     selectedMeats: string[] = [];
     selectedDrinks: string[] = [];
@@ -102,12 +105,85 @@ export class ChurrascoComponent {
     drinkCost: number = 0;
     totalCost: number = 0;
 
-    constructor(private fb: FormBuilder) {
+    constructor(private fb: FormBuilder, private churrascoService: ChurrascoService) {
         this.form = this.fb.group({
             criancas: [0],
             adultos: [0],
-            meats: this.fb.array(this.meatsOptions.map(() => false)),
-            drinks: this.fb.array(this.drinksOptions.map(() => false))
+            meats: this.fb.array([]),
+            drinks: this.fb.array([])
+        });
+    }
+
+    ngOnInit(): void {
+        this.loadOptions();
+    }
+
+    loadOptions(): void {
+        this.isLoading = true;
+        this.loadingError = '';
+
+        this.churrascoService.getMeats().subscribe({
+            next: (meats) => {
+                this.meatsOptions = meats;
+                this.updateMeatsFormArray();
+            },
+            error: (error) => {
+                console.error('Erro ao carregar carnes:', error);
+                this.loadingError = 'Erro ao carregar dados. Usando valores padrão.';
+                this.setDefaultOptions();
+                this.updateMeatsFormArray();
+            }
+        });
+
+        this.churrascoService.getDrinks().subscribe({
+            next: (drinks) => {
+                this.drinksOptions = drinks;
+                this.updateDrinksFormArray();
+            },
+            error: (error) => {
+                console.error('Erro ao carregar bebidas:', error);
+                this.loadingError = 'Erro ao carregar dados. Usando valores padrão.';
+                this.setDefaultOptions();
+                this.updateDrinksFormArray();
+            },
+            complete: () => {
+                this.isLoading = false;
+            }
+        });
+    }
+
+    setDefaultOptions(): void {
+        if (this.meatsOptions.length === 0) {
+            this.meatsOptions = [
+                { label: 'Picanha', value: 'picanha', pricePerKg: 70 },
+                { label: 'Alcatra', value: 'alcatra', pricePerKg: 45 },
+                { label: 'Linguiça', value: 'linguica', pricePerKg: 25 },
+                { label: 'Frango', value: 'frango', pricePerKg: 18 }
+            ];
+        }
+        if (this.drinksOptions.length === 0) {
+            this.drinksOptions = [
+                { label: 'Cerveja', value: 'cerveja', pricePerUnit: 6 },
+                { label: 'Refrigerante', value: 'refrigerante', pricePerUnit: 7 },
+                { label: 'Água', value: 'agua', pricePerUnit: 2 },
+                { label: 'Suco', value: 'suco', pricePerUnit: 5 }
+            ];
+        }
+    }
+
+    updateMeatsFormArray(): void {
+        const meatsArray = this.form.get('meats') as FormArray;
+        meatsArray.clear();
+        this.meatsOptions.forEach(() => {
+            meatsArray.push(this.fb.control(false));
+        });
+    }
+
+    updateDrinksFormArray(): void {
+        const drinksArray = this.form.get('drinks') as FormArray;
+        drinksArray.clear();
+        this.drinksOptions.forEach(() => {
+            drinksArray.push(this.fb.control(false));
         });
     }
 

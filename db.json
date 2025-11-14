@@ -1,0 +1,54 @@
+{
+  "meats": [
+    {
+      "id": 1,
+      "label": "Picanha",
+      "value": "picanha",
+      "pricePerKg": 70
+    },
+    {
+      "id": 2,
+      "label": "Alcatra",
+      "value": "alcatra",
+      "pricePerKg": 45
+    },
+    {
+      "id": 3,
+      "label": "Linguiça",
+      "value": "linguica",
+      "pricePerKg": 25
+    },
+    {
+      "id": 4,
+      "label": "Frango",
+      "value": "frango",
+      "pricePerKg": 18
+    }
+  ],
+  "drinks": [
+    {
+      "id": 1,
+      "label": "Cerveja",
+      "value": "cerveja",
+      "pricePerUnit": 6
+    },
+    {
+      "id": 2,
+      "label": "Refrigerante",
+      "value": "refrigerante",
+      "pricePerUnit": 7
+    },
+    {
+      "id": 3,
+      "label": "Água",
+      "value": "agua",
+      "pricePerUnit": 2
+    },
+    {
+      "id": 4,
+      "label": "Suco",
+      "value": "suco",
+      "pricePerUnit": 5
+    }
+  ]
+}
